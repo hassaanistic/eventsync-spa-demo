@@ -9,7 +9,7 @@ const product = {
   name: "Velocity Runner X",
   price: 149.99,
   description: "Breathable knit upper, responsive foam midsole, and traction outsole built for daily training.",
-  heroImage: "https://images.unsplash.com/photo-1528701800489-20be3c10352c?auto=format&fit=crop&w=1200&q=80",
+  heroImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80",
 };
 
 const ProductDetailDemo = () => {
