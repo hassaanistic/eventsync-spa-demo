@@ -33,7 +33,7 @@ export default function RootLayout({
           <main className="main-content">{children}</main>
         </div>
         <ConsentBanner />
-        <script src="https://14209b0a155b.ngrok-free.app/sdk/pk_live_1b4068e9f47170cc4a79ec2c.js" async></script>
+        <script src="https://65e517d23bfb.ngrok-free.app/sdk/pk_live_1b4068e9f47170cc4a79ec2c.js" async></script>
       </body>
     </html>
   );
