@@ -1,7 +1,15 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { EventSyncAdditionalData } from "@/types/eventsync";
+import {
+  identityFormSchema,
+  manualLeadFormSchema,
+  type IdentityFormData,
+  type ManualLeadFormData,
+} from "@/lib/validations";
 
 type LogLevel = "info" | "success" | "error";
 
@@ -92,7 +100,38 @@ const EventSyncTestPage = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [consentRequired, setConsentRequired] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
-  const manualLeadFormRef = useRef<HTMLFormElement>(null);
+
+  // Identity form with React Hook Form + Zod
+  const identityForm = useForm<IdentityFormData>({
+    resolver: zodResolver(identityFormSchema),
+    defaultValues: {
+      email: "",
+      phone: "",
+      first_name: "",
+      last_name: "",
+      city: "",
+      state: "",
+      country: "",
+      zip: "",
+    },
+  });
+
+  // Manual lead form with React Hook Form + Zod
+  const manualLeadForm = useForm<ManualLeadFormData>({
+    resolver: zodResolver(manualLeadFormSchema),
+    defaultValues: {
+      email: "",
+      phoneNumber: "",
+      firstName: "",
+      lastName: "",
+      city: "",
+      stateCode: "",
+      countryCode: "",
+      zipCode: "",
+      stageInSalesProcess: "",
+      preferredPlan: "",
+    },
+  });
 
   const addLog = useCallback((message: string, type: LogLevel = "info") => {
     setLogs((prev) => [...prev, { id: Date.now() + Math.random(), message, type }]);
@@ -217,33 +256,32 @@ const EventSyncTestPage = () => {
   );
 
   const handleManualLeadSubmit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (!manualLeadFormRef.current) return;
-
+    (data: ManualLeadFormData) => {
       if (!sdkReady()) return;
 
-      const formData = new FormData(manualLeadFormRef.current);
+      // Convert form data to payload, removing empty strings
       const payload: Record<string, string> = {};
-      formData.forEach((value, key) => {
-        if (typeof value === "string" && value.trim()) {
+      Object.entries(data).forEach(([key, value]) => {
+        if (value && typeof value === "string" && value.trim()) {
           payload[key] = value.trim();
         }
       });
 
       sendLead(payload);
-      manualLeadFormRef.current.reset();
+      manualLeadForm.reset();
       addLog("Manual lead form sent via sendEvent", "success");
     },
-    [sendLead, sdkReady, addLog]
+    [sendLead, sdkReady, addLog, manualLeadForm]
   );
 
   const handleIdentitySubmit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
+    (data: IdentityFormData) => {
+      // Identity form is auto-tracked by SDK via data-es-* attributes
+      // React Hook Form just handles validation
       addLog("Identity form submitted. SDK will auto-fire the Lead event with cached identity data.", "success");
+      identityForm.reset();
     },
-    [addLog]
+    [addLog, identityForm]
   );
 
   const checkSDKStatus = useCallback(() => {
@@ -324,7 +362,7 @@ const EventSyncTestPage = () => {
           Fill it out to test SDK enrichment plus auto-send behaviour—no manual <code>sendEvent()</code> calls needed.
         </p>
         <form
-          onSubmit={handleIdentitySubmit}
+          onSubmit={identityForm.handleSubmit(handleIdentitySubmit)}
           name="leadCapture"
           data-es-collect="true"
           data-es-event="true"
@@ -335,39 +373,97 @@ const EventSyncTestPage = () => {
           <div className="form-grid">
             <div className="input-field">
               <label htmlFor="identity-email">Email</label>
-              <input id="identity-email" type="email" name="email" data-es-identity="email" placeholder="jane.doe@example.com" required />
+              <input
+                id="identity-email"
+                type="email"
+                data-es-identity="email"
+                placeholder="jane.doe@example.com"
+                className={identityForm.formState.errors.email ? "error" : ""}
+                {...identityForm.register("email")}
+              />
+              {identityForm.formState.errors.email && (
+                <span className="error-message">{identityForm.formState.errors.email.message}</span>
+              )}
             </div>
             <div className="input-field">
               <label htmlFor="identity-phone">Phone</label>
-              <input id="identity-phone" type="tel" name="phone" data-es-identity="phoneNumber" placeholder="+1 415 555 1234" />
+              <input
+                id="identity-phone"
+                type="tel"
+                data-es-identity="phoneNumber"
+                placeholder="+1 415 555 1234"
+                className={identityForm.formState.errors.phone ? "error" : ""}
+                {...identityForm.register("phone")}
+              />
+              {identityForm.formState.errors.phone && (
+                <span className="error-message">{identityForm.formState.errors.phone.message}</span>
+              )}
             </div>
             <div className="input-field">
               <label htmlFor="identity-first-name">First name</label>
-              <input id="identity-first-name" type="text" name="first_name" data-es-identity="firstName" placeholder="Jane" />
+              <input
+                id="identity-first-name"
+                type="text"
+                data-es-identity="firstName"
+                placeholder="Jane"
+                {...identityForm.register("first_name")}
+              />
             </div>
             <div className="input-field">
               <label htmlFor="identity-last-name">Last name</label>
-              <input id="identity-last-name" type="text" name="last_name" data-es-identity="lastName" placeholder="Doe" />
+              <input
+                id="identity-last-name"
+                type="text"
+                data-es-identity="lastName"
+                placeholder="Doe"
+                {...identityForm.register("last_name")}
+              />
             </div>
             <div className="input-field">
               <label htmlFor="identity-city">City</label>
-              <input id="identity-city" type="text" name="city" data-es-identity="city" placeholder="San Francisco" />
+              <input
+                id="identity-city"
+                type="text"
+                data-es-identity="city"
+                placeholder="San Francisco"
+                {...identityForm.register("city")}
+              />
             </div>
             <div className="input-field">
               <label htmlFor="identity-state">State</label>
-              <input id="identity-state" type="text" name="state" data-es-identity="stateCode" placeholder="CA" />
+              <input
+                id="identity-state"
+                type="text"
+                data-es-identity="stateCode"
+                placeholder="CA"
+                {...identityForm.register("state")}
+              />
             </div>
             <div className="input-field">
               <label htmlFor="identity-country">Country</label>
-              <input id="identity-country" type="text" name="country" data-es-identity="countryCode" placeholder="US" />
+              <input
+                id="identity-country"
+                type="text"
+                data-es-identity="countryCode"
+                placeholder="US"
+                {...identityForm.register("country")}
+              />
             </div>
             <div className="input-field">
               <label htmlFor="identity-zip">Zip</label>
-              <input id="identity-zip" type="text" name="zip" data-es-identity="zipCode" placeholder="94105" />
+              <input
+                id="identity-zip"
+                type="text"
+                data-es-identity="zipCode"
+                placeholder="94105"
+                {...identityForm.register("zip")}
+              />
             </div>
           </div>
           <div className="form-actions">
-            <button type="submit">Submit Identity Form</button>
+            <button type="submit" disabled={identityForm.formState.isSubmitting}>
+              {identityForm.formState.isSubmitting ? "Submitting..." : "Submit Identity Form"}
+            </button>
           </div>
         </form>
       </section>
@@ -443,34 +539,107 @@ const EventSyncTestPage = () => {
         <p>
           This form uses <code>EventSync.sendEvent()</code> directly—no <code>data-es-*</code> attributes.
         </p>
-        <form ref={manualLeadFormRef} onSubmit={handleManualLeadSubmit}>
+        <form onSubmit={manualLeadForm.handleSubmit(handleManualLeadSubmit)}>
           <div className="form-grid">
-            {[
-              { label: "Email", name: "email", type: "email", placeholder: "alex@example.com", required: true },
-              { label: "Phone", name: "phoneNumber", type: "tel", placeholder: "+1 555 555 5555" },
-              { label: "First name", name: "firstName", type: "text", placeholder: "Alex" },
-              { label: "Last name", name: "lastName", type: "text", placeholder: "Morgan" },
-              { label: "City", name: "city", type: "text", placeholder: "San Francisco" },
-              { label: "State", name: "stateCode", type: "text", placeholder: "CA" },
-              { label: "Country", name: "countryCode", type: "text", placeholder: "US" },
-              { label: "Zip", name: "zipCode", type: "text", placeholder: "94105" },
-              { label: "Pipeline stage", name: "stageInSalesProcess", type: "text", placeholder: "Discovery Call Booked" },
-              { label: "Preferred plan", name: "preferredPlan", type: "text", placeholder: "Growth" },
-            ].map((field) => (
-              <div className="input-field" key={field.name}>
-                <label htmlFor={`manual-${field.name}`}>{field.label}</label>
-                <input
-                  id={`manual-${field.name}`}
-                  name={field.name}
-                  type={field.type}
-                  placeholder={field.placeholder}
-                  required={field.required}
-                />
-              </div>
-            ))}
+            <div className="input-field">
+              <label htmlFor="manual-email">Email</label>
+              <input
+                id="manual-email"
+                type="email"
+                placeholder="alex@example.com"
+                className={manualLeadForm.formState.errors.email ? "error" : ""}
+                {...manualLeadForm.register("email")}
+              />
+              {manualLeadForm.formState.errors.email && (
+                <span className="error-message">{manualLeadForm.formState.errors.email.message}</span>
+              )}
+            </div>
+            <div className="input-field">
+              <label htmlFor="manual-phoneNumber">Phone</label>
+              <input
+                id="manual-phoneNumber"
+                type="tel"
+                placeholder="+1 555 555 5555"
+                {...manualLeadForm.register("phoneNumber")}
+              />
+            </div>
+            <div className="input-field">
+              <label htmlFor="manual-firstName">First name</label>
+              <input
+                id="manual-firstName"
+                type="text"
+                placeholder="Alex"
+                {...manualLeadForm.register("firstName")}
+              />
+            </div>
+            <div className="input-field">
+              <label htmlFor="manual-lastName">Last name</label>
+              <input
+                id="manual-lastName"
+                type="text"
+                placeholder="Morgan"
+                {...manualLeadForm.register("lastName")}
+              />
+            </div>
+            <div className="input-field">
+              <label htmlFor="manual-city">City</label>
+              <input
+                id="manual-city"
+                type="text"
+                placeholder="San Francisco"
+                {...manualLeadForm.register("city")}
+              />
+            </div>
+            <div className="input-field">
+              <label htmlFor="manual-stateCode">State</label>
+              <input
+                id="manual-stateCode"
+                type="text"
+                placeholder="CA"
+                {...manualLeadForm.register("stateCode")}
+              />
+            </div>
+            <div className="input-field">
+              <label htmlFor="manual-countryCode">Country</label>
+              <input
+                id="manual-countryCode"
+                type="text"
+                placeholder="US"
+                {...manualLeadForm.register("countryCode")}
+              />
+            </div>
+            <div className="input-field">
+              <label htmlFor="manual-zipCode">Zip</label>
+              <input
+                id="manual-zipCode"
+                type="text"
+                placeholder="94105"
+                {...manualLeadForm.register("zipCode")}
+              />
+            </div>
+            <div className="input-field">
+              <label htmlFor="manual-stageInSalesProcess">Pipeline stage</label>
+              <input
+                id="manual-stageInSalesProcess"
+                type="text"
+                placeholder="Discovery Call Booked"
+                {...manualLeadForm.register("stageInSalesProcess")}
+              />
+            </div>
+            <div className="input-field">
+              <label htmlFor="manual-preferredPlan">Preferred plan</label>
+              <input
+                id="manual-preferredPlan"
+                type="text"
+                placeholder="Growth"
+                {...manualLeadForm.register("preferredPlan")}
+              />
+            </div>
           </div>
           <div className="form-actions">
-            <button type="submit">Send Lead via sendEvent</button>
+            <button type="submit" disabled={manualLeadForm.formState.isSubmitting}>
+              {manualLeadForm.formState.isSubmitting ? "Sending..." : "Send Lead via sendEvent"}
+            </button>
           </div>
         </form>
       </section>

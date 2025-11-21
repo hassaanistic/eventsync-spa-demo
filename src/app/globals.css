@@ -165,6 +165,22 @@ a {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
+.input-field input.error {
+  border-color: #ef4444;
+}
+
+.input-field input.error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 4px;
+  display: block;
+}
+
 .form-actions {
   margin-top: 24px;
   display: flex;

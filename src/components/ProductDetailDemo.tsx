@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 import { useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { EventSyncAdditionalData } from "@/types/eventsync";
+import { productContactFormSchema, type ProductContactFormData } from "@/lib/validations";
 
 const product = {
   id: "demo-runner",
@@ -13,10 +16,29 @@ const product = {
 };
 
 const ProductDetailDemo = () => {
+  // Product contact form with React Hook Form + Zod
+  const productContactForm = useForm<ProductContactFormData>({
+    resolver: zodResolver(productContactFormSchema),
+    defaultValues: {
+      email: "",
+      question: "",
+    },
+  });
+
   const notify = useCallback((message: string) => {
     if (typeof window === "undefined") return;
     console.log(message);
   }, []);
+
+  const handleProductContactSubmit = useCallback(
+    (data: ProductContactFormData) => {
+      // Product contact form is auto-tracked by SDK via data-es-* attributes
+      // React Hook Form just handles validation
+      notify("PDP contact form submitted. SDK auto event should fire.");
+      productContactForm.reset();
+    },
+    [notify, productContactForm]
+  );
 
   const sendEvent = useCallback(
     (eventName: string, additionalData: EventSyncAdditionalData) => {
@@ -111,23 +133,41 @@ const ProductDetailDemo = () => {
           data-es-event-name="Lead"
           data-es-event-type="interaction"
           data-es-event-payload='{"source":"pdp_contact"}'
-          onSubmit={(e) => {
-            e.preventDefault();
-            notify("PDP contact form submitted. SDK auto event should fire.");
-          }}
+          onSubmit={productContactForm.handleSubmit(handleProductContactSubmit)}
         >
           <div className="form-grid">
             <div className="input-field">
               <label htmlFor="pdp-email">Email</label>
-              <input id="pdp-email" name="email" type="email" data-es-identity="email" placeholder="you@example.com" required />
+              <input
+                id="pdp-email"
+                type="email"
+                data-es-identity="email"
+                placeholder="you@example.com"
+                className={productContactForm.formState.errors.email ? "error" : ""}
+                {...productContactForm.register("email")}
+              />
+              {productContactForm.formState.errors.email && (
+                <span className="error-message">{productContactForm.formState.errors.email.message}</span>
+              )}
             </div>
             <div className="input-field">
               <label htmlFor="pdp-message">Question</label>
-              <input id="pdp-message" name="question" type="text" placeholder="Do you have this in size 11?" required />
+              <input
+                id="pdp-message"
+                type="text"
+                placeholder="Do you have this in size 11?"
+                className={productContactForm.formState.errors.question ? "error" : ""}
+                {...productContactForm.register("question")}
+              />
+              {productContactForm.formState.errors.question && (
+                <span className="error-message">{productContactForm.formState.errors.question.message}</span>
+              )}
             </div>
           </div>
           <div className="form-actions">
-            <button type="submit">Send question</button>
+            <button type="submit" disabled={productContactForm.formState.isSubmitting}>
+              {productContactForm.formState.isSubmitting ? "Sending..." : "Send question"}
+            </button>
           </div>
         </form>
       </div>
