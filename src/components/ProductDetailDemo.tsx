@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { EventSyncAdditionalData } from "@/types/eventsync";
+import type { EventsIQAdditionalData } from "@/types/eventsiq";
 import { productContactFormSchema, type ProductContactFormData } from "@/lib/validations";
 
 const product = {
@@ -41,12 +41,12 @@ const ProductDetailDemo = () => {
   );
 
   const sendEvent = useCallback(
-    (eventName: string, additionalData: EventSyncAdditionalData) => {
-      if (typeof window === "undefined" || !window.EventSync?.sendEvent) {
-        notify("[EventSync] SDK not ready yet.");
+    (eventName: string, additionalData: EventsIQAdditionalData) => {
+      if (typeof window === "undefined" || !window.EventsIQ?.sendEvent) {
+        notify("[EventsIQ] SDK not ready yet.");
         return;
       }
-      window.EventSync.sendEvent({
+      window.EventsIQ.sendEvent({
         eventName,
         eventType: "interaction",
         additionalData,

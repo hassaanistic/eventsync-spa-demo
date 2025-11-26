@@ -1,5 +1,5 @@
-import EventSyncTestPage from "@/components/EventSyncTestPage";
+import EventsIQTestPage from "@/components/EventsIQTestPage";
 
 export default function Home() {
-  return <EventSyncTestPage />;
+  return <EventsIQTestPage />;
 }

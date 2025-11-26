@@ -1,14 +1,14 @@
-export type EventSyncAdditionalData = Record<string, unknown>;
+export type EventsIQAdditionalData = Record<string, unknown>;
 
-export interface EventSyncSendPayload {
+export interface EventsIQSendPayload {
   eventName: string;
   eventType?: "interaction" | "nonInteraction";
-  additionalData?: EventSyncAdditionalData;
+  additionalData?: EventsIQAdditionalData;
   eventId?: string;
 }
 
-export interface EventSyncAPI {
-  sendEvent?: (payload: EventSyncSendPayload) => void;
+export interface EventsIQAPI {
+  sendEvent?: (payload: EventsIQSendPayload) => void;
   setConsent?: (state: { hasConsent: boolean; advertising?: boolean; analytics?: boolean }) => void;
   isConsented?: () => boolean;
   isInitialized?: boolean;
@@ -16,7 +16,7 @@ export interface EventSyncAPI {
 
 declare global {
   interface Window {
-    EventSync?: EventSyncAPI;
+    EventsIQ?: EventsIQAPI;
   }
 }
 

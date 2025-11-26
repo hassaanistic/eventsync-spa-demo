@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { EventSyncAdditionalData } from "@/types/eventsync";
+import type { EventsIQAdditionalData } from "@/types/eventsiq";
 import {
   contactFormSchema,
   manualContactFormSchema,
@@ -33,13 +33,13 @@ const ContactPageContent = () => {
     },
   });
 
-  const sendContactEvent = useCallback((additionalData: EventSyncAdditionalData) => {
-    if (typeof window === "undefined" || !window.EventSync?.sendEvent) {
-      console.warn("[EventSync] SDK not ready yet—unable to send Contact event.");
+  const sendContactEvent = useCallback((additionalData: EventsIQAdditionalData) => {
+    if (typeof window === "undefined" || !window.EventsIQ?.sendEvent) {
+      console.warn("[EventsIQ] SDK not ready yet—unable to send Contact event.");
       return;
     }
 
-    window.EventSync.sendEvent({
+    window.EventsIQ.sendEvent({
       eventName: "Contact",
       eventType: "interaction",
       additionalData,
@@ -49,7 +49,7 @@ const ContactPageContent = () => {
   const handleManualContact = useCallback(
     (data: ManualContactFormData) => {
       // Convert form data to payload, removing empty strings
-    const payload: EventSyncAdditionalData = {};
+    const payload: EventsIQAdditionalData = {};
       Object.entries(data).forEach(([key, value]) => {
         if (value && typeof value === "string" && value.trim()) {
         payload[key] = value.trim();
@@ -65,7 +65,7 @@ const ContactPageContent = () => {
     (data: ContactFormData) => {
       // Contact form is auto-tracked by SDK via data-es-* attributes
       // React Hook Form just handles validation
-      console.log("[EventSync] Contact auto form submitted");
+      console.log("[EventsIQ] Contact auto form submitted");
       contactForm.reset();
     },
     [contactForm]
@@ -135,7 +135,7 @@ const ContactPageContent = () => {
 
       <section className="card">
         <h3>Manual Contact Event</h3>
-        <p>Submit to call EventSync.sendEvent() yourself—mirrors webhooks you expect from the SDK.</p>
+        <p>Submit to call EventsIQ.sendEvent() yourself—mirrors webhooks you expect from the SDK.</p>
         <form onSubmit={manualContactForm.handleSubmit(handleManualContact)}>
           <div className="form-grid">
             <div className="input-field">

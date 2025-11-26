@@ -14,7 +14,7 @@ const NavBar = () => {
 
   return (
     <header className="nav-bar">
-      <span className="nav-logo">EventSync SPA</span>
+      <span className="nav-logo">EventsIQ SPA</span>
       <nav className="nav-links">
         {links.map((link) => (
           <Link key={link.href} href={link.href} className={pathname === link.href ? "active" : ""}>

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { EventSyncAdditionalData } from "@/types/eventsync";
+import type { EventsIQAdditionalData } from "@/types/eventsiq";
 import {
   identityFormSchema,
   manualLeadFormSchema,
@@ -19,7 +19,7 @@ interface LogEntry {
   message: string;
 }
 
-const standardEventPayloads: Record<string, EventSyncAdditionalData> = {
+const standardEventPayloads: Record<string, EventsIQAdditionalData> = {
   ViewContent: {
     content_type: "product",
     contents: [{ id: "prod_demo", quantity: 1, item_price: 129.99, name: "Demo Sneaker" }],
@@ -96,7 +96,7 @@ const demoProducts = [
   },
 ];
 
-const EventSyncTestPage = () => {
+const EventsIQTestPage = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [consentRequired, setConsentRequired] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
@@ -143,7 +143,7 @@ const EventSyncTestPage = () => {
   }, [logs]);
 
   const sdkReady = useCallback(() => {
-    if (typeof window === "undefined" || !window.EventSync?.sendEvent) {
+    if (typeof window === "undefined" || !window.EventsIQ?.sendEvent) {
       addLog("SDK not ready. Wait a moment and try again.", "error");
       return false;
     }
@@ -152,7 +152,7 @@ const EventSyncTestPage = () => {
 
   const sendPageView = useCallback(() => {
     if (!sdkReady()) return;
-    window.EventSync!.sendEvent!({
+    window.EventsIQ!.sendEvent!({
       eventName: "PageView",
       eventType: "nonInteraction",
       additionalData: { pageVariant: "demo" },
@@ -164,7 +164,7 @@ const EventSyncTestPage = () => {
     (product: { id: string; name: string; price: number; quantity?: number }) => {
       if (!sdkReady()) return;
       const quantity = product.quantity ?? 1;
-      window.EventSync!.sendEvent!({
+      window.EventsIQ!.sendEvent!({
         eventName: "AddToCart",
         eventType: "interaction",
         additionalData: {
@@ -191,7 +191,7 @@ const EventSyncTestPage = () => {
     (product: { id: string; name: string; price: number; quantity?: number }) => {
       if (!sdkReady()) return;
       const quantity = product.quantity ?? 1;
-      window.EventSync!.sendEvent!({
+      window.EventsIQ!.sendEvent!({
         eventName: "Purchase",
         eventType: "interaction",
         additionalData: {
@@ -216,9 +216,9 @@ const EventSyncTestPage = () => {
   );
 
   const sendLead = useCallback(
-    (additionalData: EventSyncAdditionalData) => {
+    (additionalData: EventsIQAdditionalData) => {
       if (!sdkReady()) return;
-      window.EventSync!.sendEvent!({
+      window.EventsIQ!.sendEvent!({
         eventName: "Lead",
         eventType: "interaction",
         additionalData,
@@ -229,9 +229,9 @@ const EventSyncTestPage = () => {
   );
 
   const sendSubscribe = useCallback(
-    (additionalData: EventSyncAdditionalData) => {
+    (additionalData: EventsIQAdditionalData) => {
       if (!sdkReady()) return;
-      window.EventSync!.sendEvent!({
+      window.EventsIQ!.sendEvent!({
         eventName: "Subscribe",
         eventType: "interaction",
         additionalData,
@@ -245,7 +245,7 @@ const EventSyncTestPage = () => {
     (eventName: string) => {
       if (!sdkReady()) return;
       const payload = standardEventPayloads[eventName] || {};
-      window.EventSync!.sendEvent!({
+      window.EventsIQ!.sendEvent!({
         eventName,
         eventType: "interaction",
         additionalData: payload,
@@ -286,11 +286,11 @@ const EventSyncTestPage = () => {
 
   const checkSDKStatus = useCallback(() => {
     if (typeof window === "undefined") return;
-    if (window.EventSync?.sendEvent) {
-      addLog("EventSync SDK is loaded and available", "success");
-      addLog(`SDK initialized: ${Boolean(window.EventSync.isInitialized)}`, "info");
+    if (window.EventsIQ?.sendEvent) {
+      addLog("EventsIQ SDK is loaded and available", "success");
+      addLog(`SDK initialized: ${Boolean(window.EventsIQ.isInitialized)}`, "info");
     } else {
-      addLog("EventSync SDK not found. Make sure the script loaded correctly.", "error");
+      addLog("EventsIQ SDK not found. Make sure the script loaded correctly.", "error");
     }
   }, [addLog]);
 
@@ -300,7 +300,7 @@ const EventSyncTestPage = () => {
     if (typeof window === "undefined") return;
 
     const readyHandler = (event: Event) => {
-      addLog("EventSync SDK initialized successfully!", "success");
+      addLog("EventsIQ SDK initialized successfully!", "success");
       addLog(`Config: ${JSON.stringify((event as CustomEvent).detail, null, 2)}`, "info");
       const required = Boolean((event as CustomEvent).detail?.config?.consentRequired);
       setConsentRequired(required);
@@ -318,23 +318,23 @@ const EventSyncTestPage = () => {
       addLog(`SDK Error: ${JSON.stringify((event as CustomEvent).detail)}`, "error");
     };
 
-    window.addEventListener("eventsync:ready", readyHandler);
-    window.addEventListener("eventsync:beforeSend", beforeSendHandler);
-    window.addEventListener("eventsync:error", errorHandler);
+    window.addEventListener("eventsiq:ready", readyHandler);
+    window.addEventListener("eventsiq:beforeSend", beforeSendHandler);
+    window.addEventListener("eventsiq:error", errorHandler);
 
     const timeout = setTimeout(() => checkSDKStatus(), 1200);
 
     return () => {
-      window.removeEventListener("eventsync:ready", readyHandler);
-      window.removeEventListener("eventsync:beforeSend", beforeSendHandler);
-      window.removeEventListener("eventsync:error", errorHandler);
+      window.removeEventListener("eventsiq:ready", readyHandler);
+      window.removeEventListener("eventsiq:beforeSend", beforeSendHandler);
+      window.removeEventListener("eventsiq:error", errorHandler);
       clearTimeout(timeout);
     };
   }, [addLog, checkSDKStatus]);
 
   return (
     <div className="page">
-      <h1 className="page-heading">EventSync SDK Test Page</h1>
+      <h1 className="page-heading">EventsIQ SDK Test Page</h1>
       <p className="page-description">
         Use the sections below to try both auto-tracked experiences (data attributes) and manual sendEvent() calls inside a
         Next.js SPA.
@@ -348,7 +348,7 @@ const EventSyncTestPage = () => {
             to see how the SDK caches identity data and auto-fires the configured form event.
           </li>
           <li>
-            <strong>Manual triggers:</strong> Use the buttons in the manual section to call <code>EventSync.sendEvent()</code>{" "}
+            <strong>Manual triggers:</strong> Use the buttons in the manual section to call <code>EventsIQ.sendEvent()</code>{" "}
             directly for PageView, Lead, AddToCart, Purchase, etc.
           </li>
           <li>Watch the log panel to confirm enrichment and delivery for both auto-tracked and manual events.</li>
@@ -498,7 +498,7 @@ const EventSyncTestPage = () => {
 
       <section className="card">
         <h2>Products (Manual Event Helpers)</h2>
-        <p>These quick helpers call EventSync.sendEvent() for common commerce events.</p>
+        <p>These quick helpers call EventsIQ.sendEvent() for common commerce events.</p>
         <div className="product-grid">
           {demoProducts.map((product) => (
             <div key={product.id} className="product-card">
@@ -515,7 +515,7 @@ const EventSyncTestPage = () => {
 
       <section className="card">
         <h2>Manual Event Buttons</h2>
-        <p>Dispatch events via EventSync.sendEvent().</p>
+        <p>Dispatch events via EventsIQ.sendEvent().</p>
         <div className="events-row">
           <button onClick={sendPageView}>Send PageView Event</button>
           <button onClick={() => sendAddToCart({ id: "test-product-123", name: "Sample Product", price: 49.99 })}>
@@ -537,7 +537,7 @@ const EventSyncTestPage = () => {
       <section className="card">
         <h3>Manual Lead Form (sendEvent)</h3>
         <p>
-          This form uses <code>EventSync.sendEvent()</code> directly—no <code>data-es-*</code> attributes.
+          This form uses <code>EventsIQ.sendEvent()</code> directly—no <code>data-es-*</code> attributes.
         </p>
         <form onSubmit={manualLeadForm.handleSubmit(handleManualLeadSubmit)}>
           <div className="form-grid">
@@ -679,5 +679,5 @@ const EventSyncTestPage = () => {
   );
 };
 
-export default EventSyncTestPage;
+export default EventsIQTestPage;
 

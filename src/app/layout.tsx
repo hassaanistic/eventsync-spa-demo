@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EventSync SDK SPA Playground",
+  title: "EventsIQ SDK SPA Playground",
   description: "Test auto-tracking, consent, and manual events inside a Next.js app.",
 };
 

@@ -21,7 +21,7 @@ const ConsentBanner = () => {
 
     setVisible(!hasConsent);
     setDescription(
-      hasConsent ? "Thanks! Tracking is enabled for this session." : "We need your permission before EventSync can store identity data or send events."
+      hasConsent ? "Thanks! Tracking is enabled for this session." : "We need your permission before EventsIQ can store identity data or send events."
     );
   }, []);
 
@@ -31,7 +31,7 @@ const ConsentBanner = () => {
     const handleReady = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       const required = Boolean(detail?.config?.consentRequired);
-      const hasConsent = required ? window.EventSync?.isConsented?.() ?? false : true;
+      const hasConsent = required ? window.EventsIQ?.isConsented?.() ?? false : true;
       applyBannerState(required, hasConsent);
     };
 
@@ -41,22 +41,22 @@ const ConsentBanner = () => {
       applyBannerState(true, hasConsent);
     };
 
-    window.addEventListener("eventsync:ready", handleReady);
-    window.addEventListener("eventsync:consent", handleConsent);
+    window.addEventListener("eventsiq:ready", handleReady);
+    window.addEventListener("eventsiq:consent", handleConsent);
 
     return () => {
-      window.removeEventListener("eventsync:ready", handleReady);
-      window.removeEventListener("eventsync:consent", handleConsent);
+      window.removeEventListener("eventsiq:ready", handleReady);
+      window.removeEventListener("eventsiq:consent", handleConsent);
     };
   }, [applyBannerState]);
 
   const handleConsentSelection = useCallback(
     (hasConsent: boolean) => {
-      if (typeof window === "undefined" || !window.EventSync?.setConsent) {
+      if (typeof window === "undefined" || !window.EventsIQ?.setConsent) {
         return;
       }
 
-      window.EventSync.setConsent({
+      window.EventsIQ.setConsent({
         hasConsent,
         advertising: hasConsent,
         analytics: hasConsent,
@@ -73,7 +73,7 @@ const ConsentBanner = () => {
   return (
     <div className="consent-banner" role="dialog" aria-live="polite" aria-label="Tracking consent banner">
       <div>
-        <h3>Allow EventSync tracking?</h3>
+        <h3>Allow EventsIQ tracking?</h3>
         <p>{description}</p>
       </div>
       <div className="consent-actions">
