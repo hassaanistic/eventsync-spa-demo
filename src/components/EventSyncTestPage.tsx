@@ -628,13 +628,13 @@ const EventSyncTestPage = () => {
             </div>
             <div className="input-field">
               <label htmlFor="manual-preferredPlan">Preferred plan</label>
-              <input
+                <input
                 id="manual-preferredPlan"
                 type="text"
                 placeholder="Growth"
                 {...manualLeadForm.register("preferredPlan")}
-              />
-            </div>
+                />
+              </div>
           </div>
           <div className="form-actions">
             <button type="submit" disabled={manualLeadForm.formState.isSubmitting}>

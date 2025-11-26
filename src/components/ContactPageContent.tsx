@@ -49,13 +49,13 @@ const ContactPageContent = () => {
   const handleManualContact = useCallback(
     (data: ManualContactFormData) => {
       // Convert form data to payload, removing empty strings
-      const payload: EventSyncAdditionalData = {};
+    const payload: EventSyncAdditionalData = {};
       Object.entries(data).forEach(([key, value]) => {
         if (value && typeof value === "string" && value.trim()) {
-          payload[key] = value.trim();
-        }
-      });
-      sendContactEvent(payload);
+        payload[key] = value.trim();
+      }
+    });
+    sendContactEvent(payload);
       manualContactForm.reset();
     },
     [sendContactEvent, manualContactForm]
