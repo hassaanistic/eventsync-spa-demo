@@ -17,7 +17,11 @@ const NavBar = () => {
       <span className="nav-logo">EventsIQ SPA</span>
       <nav className="nav-links">
         {links.map((link) => (
-          <Link key={link.href} href={link.href} className={pathname === link.href ? "active" : ""}>
+          <Link
+            key={link.href}
+            href={link.href}
+            className={pathname === link.href ? "active" : ""}
+          >
             {link.label}
           </Link>
         ))}
@@ -27,4 +31,3 @@ const NavBar = () => {
 };
 
 export default NavBar;
-

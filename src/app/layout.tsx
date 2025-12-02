@@ -17,7 +17,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "EventsIQ SDK SPA Playground",
-  description: "Test auto-tracking, consent, and manual events inside a Next.js app.",
+  description:
+    "Test auto-tracking, consent, and manual events inside a Next.js app.",
 };
 
 export default function RootLayout({
@@ -27,15 +28,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <div className="layout-shell">
           <NavBar />
           <main className="main-content">{children}</main>
         </div>
         <ConsentBanner />
-       
-         <script src="https://c2c830770527.ngrok-free.app/sdk/pk_live_74ee724b3e5d23a2d5207059.js" async></script>
-         </body>
+
+        <script
+          src="https://events-iq-hub.vercel.app/sdk/pk_live_74ee724b3e5d23a2d5207059.js"
+          async
+        ></script>
+      </body>
     </html>
   );
 }
