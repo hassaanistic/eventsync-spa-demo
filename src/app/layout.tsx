@@ -37,15 +37,15 @@ export default function RootLayout({
         </div>
         <ConsentBanner />
 
-        <script
+        {/* <script
           src="https://events-iq-hub.vercel.app/sdk/pk_live_74ee724b3e5d23a2d5207059.js"
           async
-        ></script>
+        ></script> */}
 
-        {/* <script
+        <script
           src="https://23d726edb008.ngrok-free.app/sdk/pk_live_74ee724b3e5d23a2d5207059.js"
           async
-        ></script> */}
+        ></script>
       </body>
     </html>
   );
