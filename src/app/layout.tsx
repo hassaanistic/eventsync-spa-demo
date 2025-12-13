@@ -43,7 +43,7 @@ export default function RootLayout({
         ></script> */}
 
         <script
-          src="https://23d726edb008.ngrok-free.app/sdk/pk_live_74ee724b3e5d23a2d5207059.js"
+          src="https://c3f4d7eef8c8.ngrok-free.app/sdk/pk_live_74ee724b3e5d23a2d5207059.js"
           async
         ></script>
       </body>
