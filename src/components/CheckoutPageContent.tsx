@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface LogEntry {
   id: number;
@@ -27,6 +28,7 @@ const demoProducts = [
 ];
 
 const CheckoutPageContent = () => {
+  const router = useRouter();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [selectedProduct, setSelectedProduct] = useState(demoProducts[0]);
   const [quantity, setQuantity] = useState(1);
@@ -64,10 +66,12 @@ const CheckoutPageContent = () => {
     }) => {
       if (!sdkReady()) return;
       const qty = product.quantity ?? quantity;
-      const orderId = `order_${Date.now()}_${Math.random()
+      const timestamp = Date.now();
+      const orderId = `order_${timestamp}_${Math.random()
         .toString(36)
         .substr(2, 9)}`;
 
+      // Send the purchase event
       window.EventsIQ!.sendEvent!({
         eventName: "Purchase",
         eventType: "interaction",
@@ -87,12 +91,23 @@ const CheckoutPageContent = () => {
           product_category: "Demo",
         },
       });
+      
       addLog(
         `✅ Purchase event sent: ${product.name} (Qty: ${qty}, Order ID: ${orderId})`,
         "success"
       );
+
+      // Navigate to a new URL with unique timestamp to avoid duplicate detection
+      // This makes each event fire on a different URL
+      const newUrl = `/checkout?t=${timestamp}&order=${orderId}`;
+      addLog(`🔄 Navigating to: ${newUrl}`, "info");
+      
+      // Use setTimeout to ensure event is sent before navigation
+      setTimeout(() => {
+        router.push(newUrl);
+      }, 100);
     },
-    [addLog, sdkReady, quantity]
+    [addLog, sdkReady, quantity, router]
   );
 
   const handleTestPurchase = useCallback(() => {
@@ -100,24 +115,68 @@ const CheckoutPageContent = () => {
   }, [sendPurchase, selectedProduct, quantity]);
 
   const handleTestMultiplePurchases = useCallback(() => {
-    // Send multiple purchase events with different order IDs
-    demoProducts.forEach((product, index) => {
-      setTimeout(() => {
-        sendPurchase({ ...product, quantity: 1 });
-      }, index * 500); // Stagger by 500ms
-    });
+    if (!sdkReady()) return;
+    
     addLog(
       `🔄 Sending ${demoProducts.length} purchase events (staggered)...`,
       "info"
     );
-  }, [sendPurchase, addLog]);
+    
+    // Send multiple purchase events with different order IDs
+    const timestamp = Date.now();
+    let completedCount = 0;
+    
+    demoProducts.forEach((product, index) => {
+      setTimeout(() => {
+        const qty = 1;
+        const orderId = `order_${timestamp + index}_${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
+
+        window.EventsIQ!.sendEvent!({
+          eventName: "Purchase",
+          eventType: "interaction",
+          additionalData: {
+            value: product.price * qty,
+            currency: "USD",
+            orderId: orderId,
+            contents: [
+              {
+                id: product.id,
+                quantity: qty,
+                item_price: product.price,
+                name: product.name,
+              },
+            ],
+            num_items: qty,
+            product_category: "Demo",
+          },
+        });
+        
+        addLog(
+          `✅ Purchase event sent: ${product.name} (Order ID: ${orderId})`,
+          "success"
+        );
+        
+        completedCount++;
+        
+        // Navigate after all events are sent
+        if (completedCount === demoProducts.length) {
+          const newUrl = `/checkout?t=${timestamp}&multi=true`;
+          addLog(`🔄 All events sent. Navigating to: ${newUrl}`, "info");
+          setTimeout(() => {
+            router.push(newUrl);
+          }, 200);
+        }
+      }, index * 500); // Stagger by 500ms
+    });
+  }, [addLog, sdkReady, router]);
 
   return (
     <div className="page">
       <h1 className="page-heading">Checkout - Purchase Event Testing</h1>
       <p className="page-description">
-        Test Snapchat Purchase events from a different route. Each purchase will
-        have a unique order ID.
+        Test Snapchat Purchase events. Each purchase will send an event and automatically navigate to a unique URL with a timestamp to avoid duplicate detection.
       </p>
 
       <section className="card">
@@ -304,17 +363,17 @@ const CheckoutPageContent = () => {
         <h3 style={{ marginTop: 0, color: "#856404" }}>ℹ️ Testing Notes</h3>
         <ul style={{ color: "#856404", margin: 0, paddingLeft: "1.5rem" }}>
           <li>
-            This page is on a different route (<code>/checkout</code>), so
-            events won't conflict with other pages
-          </li>
-          <li>Each purchase event has a unique order ID to avoid duplicates</li>
-          <li>
-            Snapchat will track these as <code>PURCHASE</code> events
-            (uppercase)
+            <strong>Automatic URL Change:</strong> After sending an event, the page automatically navigates to a unique URL with a timestamp (e.g., <code>/checkout?t=1734456000000</code>)
           </li>
           <li>
-            Check your Snapchat Pixel dashboard to verify events are being
-            received
+            This ensures each event fires on a different URL, preventing Snapchat's duplicate detection
+          </li>
+          <li>Each purchase event has a unique order ID and unique URL timestamp</li>
+          <li>
+            Snapchat will track these as <code>PURCHASE</code> events (uppercase)
+          </li>
+          <li>
+            Check your Snapchat Pixel dashboard to verify events are being received without duplicate warnings
           </li>
         </ul>
       </section>
