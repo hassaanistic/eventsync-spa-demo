@@ -8,6 +8,7 @@ const links = [
   { href: "/pdp", label: "PDP" },
   { href: "/contact", label: "Contact" },
   { href: "/checkout", label: "Checkout" },
+  { href: "/gtag-test", label: "Google Tag Test" },
 ];
 
 const NavBar = () => {
