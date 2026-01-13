@@ -433,6 +433,56 @@ const GtagTestPageContent = () => {
         </div>
       </section>
 
+      <section className="card">
+        <h2>Send Event to Multiple Accounts</h2>
+        <p style={{ marginBottom: "1rem", color: "#666" }}>
+          Send the same event to multiple Google Ads accounts using an array of conversion labels.
+          The SDK will automatically route each conversion label to its matching account.
+        </p>
+        <button
+          onClick={() => {
+            if (!sdkReady()) return;
+            
+            // Example: Send to two different accounts with their conversion labels
+            const conversionLabels = [
+              "AW-16684506815/oyRyCMyardMZEL-95ZM-", // Account 1: Submit Form
+              "AW-16956379323/zwH1CPSxr8saELuht5U_", // Account 2: Submit lead form
+            ];
+
+            window.EventsIQ!.sendEvent!({
+              eventName: "Purchase",
+              eventType: "interaction",
+              additionalData: {
+                send_to: conversionLabels, // Array of conversion labels
+                value: 100,
+                currency: "USD",
+              },
+            });
+
+            addLog(
+              `✅ Event sent to multiple accounts: ${conversionLabels.length} conversion labels`,
+              "success"
+            );
+            addLog(
+              `   Labels: ${conversionLabels.map(l => l.split("/")[0]).join(", ")}`,
+              "info"
+            );
+          }}
+          style={{
+            padding: "0.75rem 1.5rem",
+            backgroundColor: "#f59e0b",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            fontSize: "1rem",
+            fontWeight: "500",
+            cursor: "pointer",
+          }}
+        >
+          📤 Send to Multiple Accounts (Array)
+        </button>
+      </section>
+
       <div className="card">
         <h3>Event Log</h3>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
