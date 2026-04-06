@@ -38,7 +38,7 @@ export default function RootLayout({
         <ConsentBanner />
 
         <script
-          src="https://5b7b-182-186-107-131.ngrok-free.app/sdk/pk_live_a45971baa921958e7d266ebe.js"
+          src="https://05a3-182-186-107-131.ngrok-free.app/sdk/pk_live_a45971baa921958e7d266ebe.js"
           async
         ></script>
       </body>
