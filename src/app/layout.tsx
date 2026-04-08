@@ -38,7 +38,7 @@ export default function RootLayout({
         <ConsentBanner />
 
         <script
-          src="https://qa.eventsiq.io/sdk/pk_live_b21ca0a1cbf3c7aba9803233.js"
+          src="https://qa.eventsiq.io/sdk/pk_live_c36da67e9ed5f50ce4ae6d04.js"
           async
         ></script>
       </body>

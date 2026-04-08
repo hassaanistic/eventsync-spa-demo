@@ -44,7 +44,9 @@ const conversionActions = [
 
 const GtagTestPageContent = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [selectedConversion, setSelectedConversion] = useState(conversionActions[0]);
+  const [selectedConversion, setSelectedConversion] = useState(
+    conversionActions[0],
+  );
   const [eventName, setEventName] = useState("Purchase");
   const [eventValue, setEventValue] = useState("100");
   const [customSendTo, setCustomSendTo] = useState("");
@@ -57,7 +59,7 @@ const GtagTestPageContent = () => {
         { id: Date.now() + Math.random(), message, type },
       ]);
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -75,25 +77,34 @@ const GtagTestPageContent = () => {
 
   const checkGtagStatus = useCallback(() => {
     if (typeof window === "undefined") return;
-    
+
     const gtag = (window as any).gtag;
     const dataLayer = (window as any).dataLayer;
-    
+
     if (gtag) {
       addLog("✅ Google Tag (gtag.js) is loaded and available", "success");
       addLog(`gtag function type: ${typeof gtag}`, "info");
-      
+
       // Check dataLayer
       if (dataLayer && Array.isArray(dataLayer)) {
-        addLog(`✅ dataLayer exists with ${dataLayer.length} entries`, "success");
+        addLog(
+          `✅ dataLayer exists with ${dataLayer.length} entries`,
+          "success",
+        );
         if (dataLayer.length > 0) {
-          addLog(`Last dataLayer entry: ${JSON.stringify(dataLayer[dataLayer.length - 1])}`, "info");
+          addLog(
+            `Last dataLayer entry: ${JSON.stringify(dataLayer[dataLayer.length - 1])}`,
+            "info",
+          );
         }
       } else {
         addLog("⚠️ dataLayer not found", "warning");
       }
     } else {
-      addLog("❌ Google Tag (gtag.js) not found. Make sure it's initialized.", "error");
+      addLog(
+        "❌ Google Tag (gtag.js) not found. Make sure it's initialized.",
+        "error",
+      );
     }
   }, [addLog]);
 
@@ -118,10 +129,10 @@ const GtagTestPageContent = () => {
 
       addLog(
         `✅ Event sent: ${eventNameValue} with send_to: ${conversionLabel}${value ? `, value: $${value}` : ""}`,
-        "success"
+        "success",
       );
     },
-    [addLog, sdkReady]
+    [addLog, sdkReady],
   );
 
   const handleSendWithSelectedConversion = useCallback(() => {
@@ -141,7 +152,7 @@ const GtagTestPageContent = () => {
   const handleSendConversionEvent = useCallback(() => {
     if (!sdkReady()) return;
     const value = eventValue ? parseFloat(eventValue) : undefined;
-    
+
     window.EventsIQ!.sendEvent!({
       eventName: "conversion",
       eventType: "interaction",
@@ -154,9 +165,31 @@ const GtagTestPageContent = () => {
 
     addLog(
       `✅ Conversion event sent with send_to: ${selectedConversion.conversionLabel}${value ? `, value: $${value}` : ""}`,
-      "success"
+      "success",
     );
   }, [selectedConversion, eventValue, addLog, sdkReady]);
+
+  const handleSendSalesOffline = useCallback(() => {
+    if (!sdkReady()) return;
+
+    window.EventsIQ!.sendEvent!({
+      eventName: "Sales",
+      eventType: "interaction",
+      additionalData: {
+        send_to: "7507920695",
+        value: 150.0,
+        currency: "USD",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+        city: "New York",
+        countryCode: "US",
+        userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+      },
+    });
+
+    addLog("🚀 Offline Sales event sent for ID: 7507920695", "success");
+  }, [addLog, sdkReady]);
 
   const clearLog = useCallback(() => setLogs([]), []);
 
@@ -167,7 +200,10 @@ const GtagTestPageContent = () => {
       addLog("EventsIQ SDK initialized successfully!", "success");
       const config = (event as CustomEvent).detail?.config;
       if (config?.providers?.google) {
-        addLog(`Google provider configured: ${JSON.stringify(config.providers.google)}`, "info");
+        addLog(
+          `Google provider configured: ${JSON.stringify(config.providers.google)}`,
+          "info",
+        );
       }
     };
 
@@ -176,7 +212,7 @@ const GtagTestPageContent = () => {
       if (detail?.additionalData?.send_to) {
         addLog(
           `📤 beforeSend: ${detail.eventName} with send_to: ${detail.additionalData.send_to}`,
-          "info"
+          "info",
         );
       }
     };
@@ -199,49 +235,58 @@ const GtagTestPageContent = () => {
     <div className="page">
       <h1 className="page-heading">Google Tag (gtag.js) Test Page</h1>
       <p className="page-description">
-        Test Google Ads conversion tracking with conversion labels. Use the form below to send events with different conversion labels.
+        Test Google Ads conversion tracking with conversion labels. Use the form
+        below to send events with different conversion labels.
       </p>
 
       <div className="info">
         <strong>How to test:</strong>
         <ol>
           <li>
-            <strong>Check Status:</strong> Click "Check gtag Status" to verify Google Tag is loaded
+            <strong>Check Status:</strong> Click "Check gtag Status" to verify
+            Google Tag is loaded
           </li>
           <li>
-            <strong>Select Conversion:</strong> Choose a conversion action from the dropdown
+            <strong>Select Conversion:</strong> Choose a conversion action from
+            the dropdown
           </li>
           <li>
-            <strong>Send Event:</strong> Click "Send Event with Selected Conversion" to fire an event with the conversion label
+            <strong>Send Event:</strong> Click "Send Event with Selected
+            Conversion" to fire an event with the conversion label
           </li>
           <li>
-            <strong>Custom send_to:</strong> Or enter a custom conversion label and test with that
+            <strong>Custom send_to:</strong> Or enter a custom conversion label
+            and test with that
           </li>
           <li>
-            <strong>Monitor:</strong> Watch the log panel and browser console to see events being sent
+            <strong>Monitor:</strong> Watch the log panel and browser console to
+            see events being sent
           </li>
         </ol>
       </div>
 
       <section className="card">
         <h2>Google Tag Status</h2>
-        <button onClick={checkGtagStatus} style={{
-          padding: "0.75rem 1.5rem",
-          backgroundColor: "#0070f3",
-          color: "white",
-          border: "none",
-          borderRadius: "6px",
-          fontSize: "1rem",
-          fontWeight: "500",
-          cursor: "pointer",
-        }}>
+        <button
+          onClick={checkGtagStatus}
+          style={{
+            padding: "0.75rem 1.5rem",
+            backgroundColor: "#0070f3",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            fontSize: "1rem",
+            fontWeight: "500",
+            cursor: "pointer",
+          }}
+        >
           Check gtag Status
         </button>
       </section>
 
       <section className="card">
         <h2>Send Event with Conversion Label</h2>
-        
+
         <div style={{ marginBottom: "1.5rem" }}>
           <label
             htmlFor="event-name"
@@ -312,7 +357,7 @@ const GtagTestPageContent = () => {
             value={selectedConversion.conversionLabel}
             onChange={(e) => {
               const action = conversionActions.find(
-                (a) => a.conversionLabel === e.target.value
+                (a) => a.conversionLabel === e.target.value,
               );
               if (action) setSelectedConversion(action);
             }}
@@ -325,17 +370,29 @@ const GtagTestPageContent = () => {
             }}
           >
             {conversionActions.map((action) => (
-              <option key={action.conversionLabel} value={action.conversionLabel}>
+              <option
+                key={action.conversionLabel}
+                value={action.conversionLabel}
+              >
                 {action.name} - {action.conversionLabel}
               </option>
             ))}
           </select>
-          <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "#666" }}>
+          <p
+            style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "#666" }}
+          >
             {selectedConversion.description}
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "1.5rem" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "1rem",
+            flexWrap: "wrap",
+            marginBottom: "1.5rem",
+          }}
+        >
           <button
             onClick={handleSendWithSelectedConversion}
             style={{
@@ -372,7 +429,8 @@ const GtagTestPageContent = () => {
       <section className="card">
         <h2>Custom send_to Value</h2>
         <p style={{ marginBottom: "1rem", color: "#666" }}>
-          Enter a custom conversion label to test (format: AW-XXXXXXXXX/YYYYYYYYYYYYYYYYYYYYYYYYYYY-)
+          Enter a custom conversion label to test (format:
+          AW-XXXXXXXXX/YYYYYYYYYYYYYYYYYYYYYYYYYYY-)
         </p>
         <div style={{ marginBottom: "1.5rem" }}>
           <input
@@ -416,7 +474,9 @@ const GtagTestPageContent = () => {
           {conversionActions.map((action) => (
             <button
               key={action.conversionLabel}
-              onClick={() => sendGtagEvent(action.conversionLabel, "Purchase", 100)}
+              onClick={() =>
+                sendGtagEvent(action.conversionLabel, "Purchase", 100)
+              }
               style={{
                 padding: "0.5rem 1rem",
                 backgroundColor: "#f3f4f6",
@@ -436,13 +496,14 @@ const GtagTestPageContent = () => {
       <section className="card">
         <h2>Send Event to Multiple Accounts</h2>
         <p style={{ marginBottom: "1rem", color: "#666" }}>
-          Send the same event to multiple Google Ads accounts using an array of conversion labels.
-          The SDK will automatically route each conversion label to its matching account.
+          Send the same event to multiple Google Ads accounts using an array of
+          conversion labels. The SDK will automatically route each conversion
+          label to its matching account.
         </p>
         <button
           onClick={() => {
             if (!sdkReady()) return;
-            
+
             // Example: Send to two different accounts with their conversion labels
             const conversionLabels = [
               "AW-16684506815/oyRyCMyardMZEL-95ZM-", // Account 1: Submit Form
@@ -461,11 +522,11 @@ const GtagTestPageContent = () => {
 
             addLog(
               `✅ Event sent to multiple accounts: ${conversionLabels.length} conversion labels`,
-              "success"
+              "success",
             );
             addLog(
-              `   Labels: ${conversionLabels.map(l => l.split("/")[0]).join(", ")}`,
-              "info"
+              `   Labels: ${conversionLabels.map((l) => l.split("/")[0]).join(", ")}`,
+              "info",
             );
           }}
           style={{
@@ -483,9 +544,50 @@ const GtagTestPageContent = () => {
         </button>
       </section>
 
+      <section
+        className="card"
+        style={{ border: "2px solid #10b981", backgroundColor: "#f0fdf4" }}
+      >
+        <h2 style={{ color: "#065f46" }}>🎯 Test Your Offline Sales</h2>
+        <p
+          style={{
+            marginBottom: "1rem",
+            color: "#065f46",
+            fontSize: "0.875rem",
+          }}
+        >
+          This button sends the exact <strong>Sales</strong> event with ID{" "}
+          <strong>7507920695</strong> mapped in your workflow.
+        </p>
+        <button
+          onClick={handleSendSalesOffline}
+          style={{
+            padding: "1rem 2rem",
+            backgroundColor: "#10b981",
+            color: "white",
+            border: "none",
+            borderRadius: "8px",
+            fontSize: "1.1rem",
+            fontWeight: "bold",
+            cursor: "pointer",
+            width: "100%",
+            boxShadow:
+              "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+          }}
+        >
+          💰 Fire Offline Sales Event
+        </button>
+      </section>
+
       <div className="card">
         <h3>Event Log</h3>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "0.5rem",
+          }}
+        >
           <button
             onClick={clearLog}
             style={{
@@ -501,9 +603,15 @@ const GtagTestPageContent = () => {
             Clear Log
           </button>
         </div>
-        <div className="log-panel" ref={logRef} style={{ maxHeight: "400px", overflowY: "auto" }}>
+        <div
+          className="log-panel"
+          ref={logRef}
+          style={{ maxHeight: "400px", overflowY: "auto" }}
+        >
           {logs.length === 0 && (
-            <p style={{ color: "#666" }}>No events sent yet. Click the buttons above to test.</p>
+            <p style={{ color: "#666" }}>
+              No events sent yet. Click the buttons above to test.
+            </p>
           )}
           {logs.map((entry) => (
             <div key={entry.id} className={`log-entry log-${entry.type}`}>
@@ -525,19 +633,25 @@ const GtagTestPageContent = () => {
         <h3 style={{ marginTop: 0, color: "#0c4a6e" }}>ℹ️ Testing Notes</h3>
         <ul style={{ color: "#0c4a6e", margin: 0, paddingLeft: "1.5rem" }}>
           <li>
-            <strong>Conversion Labels:</strong> Each conversion action has a unique label format: <code>AW-ACCOUNT_ID/CONVERSION_LABEL</code>
+            <strong>Conversion Labels:</strong> Each conversion action has a
+            unique label format: <code>AW-ACCOUNT_ID/CONVERSION_LABEL</code>
           </li>
           <li>
-            <strong>send_to Parameter:</strong> The <code>send_to</code> parameter in <code>additionalData</code> tells Google Tag which conversion action to track
+            <strong>send_to Parameter:</strong> The <code>send_to</code>{" "}
+            parameter in <code>additionalData</code> tells Google Tag which
+            conversion action to track
           </li>
           <li>
-            <strong>Browser Console:</strong> Open your browser's developer console to see gtag events being fired
+            <strong>Browser Console:</strong> Open your browser's developer
+            console to see gtag events being fired
           </li>
           <li>
-            <strong>Google Tag Assistant:</strong> Use the Google Tag Assistant Chrome extension to verify events are being sent correctly
+            <strong>Google Tag Assistant:</strong> Use the Google Tag Assistant
+            Chrome extension to verify events are being sent correctly
           </li>
           <li>
-            <strong>Event Verification:</strong> Check your Google Ads account to verify conversions are being tracked
+            <strong>Event Verification:</strong> Check your Google Ads account
+            to verify conversions are being tracked
           </li>
         </ul>
       </section>
