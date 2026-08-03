@@ -3,6 +3,12 @@ export type EventsIQAdditionalData = Record<string, unknown>;
 export interface EventsIQSendPayload {
   eventName: string;
   eventType?: "interaction" | "nonInteraction";
+  /**
+   * Restrict this event to specific pixel providers
+   * ("facebook" | "google" | "tiktok" | "snapchat" | "applovin").
+   * Omit to fire to every configured provider.
+   */
+  providers?: string[];
   additionalData?: EventsIQAdditionalData;
   eventId?: string;
 }

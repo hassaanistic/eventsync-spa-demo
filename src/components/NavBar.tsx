@@ -9,6 +9,7 @@ const links = [
   { href: "/contact", label: "Contact" },
   { href: "/checkout", label: "Checkout" },
   { href: "/gtag-test", label: "Google Tag Test" },
+  { href: "/applovin-test", label: "AppLovin Pixel Test" },
 ];
 
 const NavBar = () => {
