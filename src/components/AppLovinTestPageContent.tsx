@@ -9,19 +9,92 @@ interface LogEntry {
 }
 
 /**
+ * Sample line items. The Axon Pixel Helper marks `items` as Required on every
+ * commerce event and shows a red NULL without it, so the demo ships a realistic
+ * cart rather than firing bare events.
+ */
+const SAMPLE_ITEMS = [
+  {
+    item_id: "sku-demo-001",
+    item_name: "Demo Blue Runner",
+    item_category: "Footwear",
+    item_brand: "EventsIQ Demo",
+    price: 39.99,
+    quantity: 1,
+  },
+  {
+    item_id: "sku-demo-002",
+    item_name: "Demo Cotton Sock",
+    item_category: "Accessories",
+    item_brand: "EventsIQ Demo",
+    price: 10.0,
+    quantity: 1,
+  },
+];
+
+const SAMPLE_CART_VALUE = 49.99;
+
+/** Dummy identity — obviously fake, but enough to satisfy Axon's user_data check. */
+const SAMPLE_USER_DATA = {
+  email: "demo.shopper@example.com",
+  phone: "+14155552671",
+  country_code: "US",
+  zip: "10001",
+};
+
+/**
  * Axon's standard event vocabulary. Unlike Snapchat (UPPERCASE) these are
  * lowercase snake_case, which is the single easiest thing to get wrong.
+ *
+ * `data` supplies the parameters the Pixel Helper expects for each event type —
+ * commerce events carry items/currency/value, purchase adds shipping, tax,
+ * transaction_id and user_data.
  */
-const AXON_STANDARD_EVENTS = [
-  { name: "page_view", desc: "Page load" },
-  { name: "view_item", desc: "Product / offer viewed" },
-  { name: "add_to_cart", desc: "Item added to cart" },
-  { name: "begin_checkout", desc: "Checkout started" },
-  { name: "purchase", desc: "Order completed (needs value + currency)" },
-  { name: "sign_up", desc: "Lead / registration" },
-  { name: "subscribe", desc: "Subscription started" },
-  { name: "search", desc: "Site search performed" },
+const AXON_STANDARD_EVENTS: Array<{
+  name: string;
+  desc: string;
+  data: () => Record<string, unknown>;
+}> = [
+  { name: "page_view", desc: "Page load — no commerce params expected", data: () => ({}) },
+  {
+    name: "view_item",
+    desc: "Product / offer viewed",
+    data: () => ({ items: SAMPLE_ITEMS, currency: "USD", value: SAMPLE_CART_VALUE }),
+  },
+  {
+    name: "add_to_cart",
+    desc: "Item added to cart",
+    data: () => ({ items: SAMPLE_ITEMS, currency: "USD", value: SAMPLE_CART_VALUE }),
+  },
+  {
+    name: "begin_checkout",
+    desc: "Checkout started",
+    data: () => ({ items: SAMPLE_ITEMS, currency: "USD", value: SAMPLE_CART_VALUE }),
+  },
+  {
+    name: "purchase",
+    desc: "Order completed — the strictest event; needs shipping, tax and user_data too",
+    data: () => ({
+      items: SAMPLE_ITEMS,
+      currency: "USD",
+      value: SAMPLE_CART_VALUE,
+      orderId: `txn_demo_${Date.now()}`,
+      shipping: 4.99,
+      tax: 3.5,
+      user_data: SAMPLE_USER_DATA,
+    }),
+  },
+  { name: "sign_up", desc: "Lead / registration", data: () => ({ user_data: SAMPLE_USER_DATA }) },
+  {
+    name: "subscribe",
+    desc: "Subscription started",
+    data: () => ({ items: SAMPLE_ITEMS, currency: "USD", value: 9.99, user_data: SAMPLE_USER_DATA }),
+  },
+  { name: "search", desc: "Site search performed", data: () => ({ search_term: "blue runner" }) },
 ];
+
+/** Events Axon validates commerce parameters on. */
+const COMMERCE_EVENTS = new Set(["view_item", "add_to_cart", "begin_checkout", "purchase", "subscribe"]);
 
 /**
  * Mirror of mapToAppLovinStandardEventName() in the SDK. Kept here so the page
@@ -277,6 +350,22 @@ const AppLovinTestPageContent = () => {
       extra.currency = currency;
     }
     if (orderId) extra.orderId = orderId;
+
+    // Axon requires items/currency/value on commerce events — without them the
+    // Pixel Helper reports them as NULL Required. Attach the sample cart so a
+    // hand-typed commerce event validates the same way the preset buttons do.
+    const axonName = previewAxonName(eventName);
+    if (COMMERCE_EVENTS.has(axonName)) {
+      extra.items = SAMPLE_ITEMS;
+      extra.currency = extra.currency ?? currency;
+      extra.value = extra.value ?? SAMPLE_CART_VALUE;
+      if (axonName === "purchase") {
+        extra.shipping = 4.99;
+        extra.tax = 3.5;
+        extra.user_data = SAMPLE_USER_DATA;
+      }
+    }
+
     fireViaSdk(eventName, extra);
   }, [eventName, eventValue, currency, orderId, fireViaSdk]);
 
@@ -523,21 +612,16 @@ const AppLovinTestPageContent = () => {
         <h2>4 · Standard Axon Events</h2>
         <p style={{ color: "#666", marginBottom: "1rem" }}>
           Axon uses lowercase snake_case — the inverse of Snapchat’s UPPERCASE convention. Each
-          button fires through the SDK, scoped to AppLovin.
+          button fires through the SDK, scoped to AppLovin, and carries the parameters the Axon
+          Pixel Helper expects for that event type (commerce events include a sample cart;{" "}
+          <code>purchase</code> also sends shipping, tax and user_data).
         </p>
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
           {AXON_STANDARD_EVENTS.map((e) => (
             <button
               key={e.name}
               title={e.desc}
-              onClick={() =>
-                fireViaSdk(
-                  e.name,
-                  e.name === "purchase"
-                    ? { value: 49.99, currency: "USD", orderId: `txn_${Date.now()}` }
-                    : {},
-                )
-              }
+              onClick={() => fireViaSdk(e.name, e.data())}
               style={{
                 padding: "0.5rem 1rem",
                 backgroundColor: "#f3f4f6",
